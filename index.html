@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HADDY-X-STORE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0a0a0a; color: white; margin: 0; font-family: sans-serif; }
+        .acc-card { background: #161616; border: 1px solid #222; border-radius: 12px; margin-bottom: 20px; overflow: hidden; }
+        .img-container img { width: 100%; height: 250px; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+    <header class="p-4 border-b border-zinc-800 bg-black sticky top-0 z-50">
+        <h1 class="text-2xl font-black text-blue-500 text-center">HADDY-X-STORE</h1>
+    </header>
+
+    <div id="accountList" class="p-4 max-w-md mx-auto">
+        <p class="text-center text-gray-500 py-10" id="loadingText">Connecting to Database...</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // DOUBLE CHECK THIS CONFIG
+        const firebaseConfig = {
+            databaseURL: "https://accsales-19cb9-default-rtdb.firebaseio.com",
+            projectId: "accsales-19cb9"
+        };
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
+            const list = document.getElementById('accountList');
+            const loadingText = document.getElementById('loadingText');
+
+            onValue(ref(db, 'accounts'), (snapshot) => {
+                const data = snapshot.val();
+                list.innerHTML = ""; // Clear list
+
+                if (!data) {
+                    list.innerHTML = "<p class='text-center text-gray-400'>No accounts available right now.</p>";
+                    return;
+                }
+
+                // Show accounts from newest to oldest
+                Object.keys(data).reverse().forEach(id => {
+                    const acc = data[id];
+                    const card = `
+                        <div class="acc-card shadow-2xl">
+                            <div class="img-container">
+                                <img src="${acc.image}" alt="Account Image">
+                            </div>
+                            <div class="p-4">
+                                <h2 class="text-3xl font-bold text-green-500 mb-2">₹${acc.price}</h2>
+                                <p class="text-gray-400 text-sm mb-4">${acc.description}</p>
+                                <div class="flex flex-col gap-2">
+                                    <a href="${acc.video}" target="_blank" class="bg-zinc-800 text-center py-2 rounded-lg text-xs font-bold border border-zinc-700">WATCH COLLECTION VIDEO</a>
+                                    <a href="https://t.me/ROCK_HEREE" class="bg-blue-600 text-white text-center py-3 rounded-lg font-bold uppercase tracking-widest">BUY NOW</a>
+                                </div>
+                            </div>
+                        </div>`;
+                    list.innerHTML += card;
+                });
+            });
+        } catch (error) {
+            console.error(error);
+            document.getElementById('loadingText').innerText = "Error: " + error.message;
+        }
+    </script>
+</body>
+</html>
